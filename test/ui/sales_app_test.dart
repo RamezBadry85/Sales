@@ -9,6 +9,7 @@ import 'package:sales/data/models/product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../support/app_test_harness.dart';
 import '../support/fake_stores.dart';
 import '../support/test_database.dart';
 
