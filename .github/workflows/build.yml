@@ -71,3 +71,37 @@ jobs:
           if-no-files-found: error
       - name: Result
         run: test "${{ steps.web.outputs.exit }}" = "0"
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Build Windows (release)
+        id: win
+        shell: pwsh
+        run: |
+          flutter build windows --release *> build.txt
+          $code = $LASTEXITCODE
+          "exit=$code" >> $env:GITHUB_OUTPUT
+          $text = Get-Content build.txt -Raw
+          for ($i = 0; $i -lt $text.Length; $i += 5000) {
+            $len = [Math]::Min(5000, $text.Length - $i)
+            $chunk = $text.Substring($i, $len).Replace("`n", " \n ")
+            Write-Output "::error title=WINDOWS_$($i / 5000)::$chunk"
+          }
+      - uses: actions/upload-artifact@v4
+        if: steps.win.outputs.exit == '0'
+        with:
+          name: sales-windows
+          path: build/windows/x64/runner/Release
+          if-no-files-found: error
+      - name: Result
+        shell: pwsh
+        run: |
+          if ("${{ steps.win.outputs.exit }}" -ne "0") { exit 1 }
