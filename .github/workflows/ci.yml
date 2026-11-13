@@ -24,10 +24,11 @@ jobs:
           cache: true
       - name: Generate platform folders
         run: |
-          flutter create --platforms=android,web,linux --org com.ramezbadry --project-name sales /tmp/scaffold
+          flutter create --platforms=android,web,linux,windows,macos --org com.ramezbadry --project-name sales /tmp/scaffold
           cp -r /tmp/scaffold/android .
           cp -r /tmp/scaffold/web .
           cp -r /tmp/scaffold/linux .
+          cp -r /tmp/scaffold/windows .
           cp /tmp/scaffold/.metadata .
           rm -rf android/app/src/test android/app/src/androidTest
           ls android
@@ -36,7 +37,7 @@ jobs:
           git config user.name "Arena Agent"
           git config user.email "agent@arena.ai"
           git add -A
-          git commit -m "chore: generate android, web and linux platform folders" || echo "nothing to commit"
+          git commit -m "chore: generate android, web, linux and windows platform folders" || echo "nothing to commit"
           git push origin HEAD:${{ github.ref_name }}
 
   analyze-test:
