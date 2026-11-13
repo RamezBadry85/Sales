@@ -45,6 +45,8 @@ class DecimalFormat {
         }
       } else if (char == '-' || char == '+') {
         buffer.write(char);
+      } else if (rune >= 0x30 && rune <= 0x39) {
+        buffer.write(char);
       }
     }
 

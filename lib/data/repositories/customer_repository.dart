@@ -41,13 +41,14 @@ class CustomerRepository {
 
         if (trimmed.isNotEmpty) {
           final pattern = likePattern(trimmed);
+          final esc = likeEscape;
           where.add('('
-              'name LIKE ? ESCAPE "\\" OR '
-              'account_name LIKE ? ESCAPE "\\" OR '
-              'contact_person LIKE ? ESCAPE "\\" OR '
-              'phone LIKE ? ESCAPE "\\" OR '
-              'email LIKE ? ESCAPE "\\" OR '
-              'address LIKE ? ESCAPE "\\"'
+              'name LIKE ? ESCAPE "$esc" OR '
+              'account_name LIKE ? ESCAPE "$esc" OR '
+              'contact_person LIKE ? ESCAPE "$esc" OR '
+              'phone LIKE ? ESCAPE "$esc" OR '
+              'email LIKE ? ESCAPE "$esc" OR '
+              'address LIKE ? ESCAPE "$esc"'
               ')');
           args.addAll(List<Object?>.filled(6, pattern));
         }

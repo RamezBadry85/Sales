@@ -1,8 +1,10 @@
 name: CI
+
 on:
   push:
     branches: ["**"]
   workflow_dispatch:
+
 jobs:
   analyze-test:
     runs-on: ubuntu-latest
@@ -12,36 +14,47 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: flutter pub get
+
+      - name: Versions
+        run: flutter --version
+
+      - name: Pub get
+        run: flutter pub get
+
       - name: Analyze
         id: analyze
         run: |
           set +e
           flutter analyze > /tmp/analyze.txt 2>&1
-          echo "exit=$?" >> $GITHUB_OUTPUT
-          head -c 400 /tmp/analyze.txt | python3 -c "import sys;print('::notice title=ANALYZE_HEAD::'+sys.stdin.read().replace(chr(10),' | '))" 
+          code=$?
+          echo "exit=$code" >> $GITHUB_OUTPUT
+          # Surface the full report through workflow annotations, because the
+          # annotation API is the only log channel available to the automation
+          # that reads this project's CI results.
           python3 - <<'PY'
-          import os
           text = open('/tmp/analyze.txt').read()
-          for i in range(0, len(text), 6000):
-              chunk = text[i:i+6000].replace('\n', ' \\n ')
-              print(f"::error title=ANALYZE_CHUNK_{i//6000}::{chunk}")
+          for i in range(0, max(len(text), 1), 5500):
+              chunk = text[i:i + 5500].replace('\n', ' \\n ')
+              print(f"::error title=ANALYZE_{i // 5500}::{chunk}")
           PY
+
       - name: Test
         id: test
         run: |
           set +e
-          flutter test --reporter compact > /tmp/test.txt 2>&1
-          echo "exit=$?" >> $GITHUB_OUTPUT
+          flutter test --reporter expanded > /tmp/test.txt 2>&1
+          code=$?
+          echo "exit=$code" >> $GITHUB_OUTPUT
           python3 - <<'PY'
           text = open('/tmp/test.txt').read()
-          for i in range(0, len(text), 6000):
-              chunk = text[i:i+6000].replace('\n', ' \\n ')
-              print(f"::error title=TEST_CHUNK_{i//6000}::{chunk}")
+          for i in range(0, max(len(text), 1), 5500):
+              chunk = text[i:i + 5500].replace('\n', ' \\n ')
+              print(f"::error title=TEST_{i // 5500}::{chunk}")
           PY
-      - name: Fail if needed
+
+      - name: Result
         run: |
-          echo "analyze exit: ${{ steps.analyze.outputs.exit }}"
-          echo "test exit: ${{ steps.test.outputs.exit }}"
+          echo "flutter analyze exit: ${{ steps.analyze.outputs.exit }}"
+          echo "flutter test exit: ${{ steps.test.outputs.exit }}"
           test "${{ steps.analyze.outputs.exit }}" = "0"
           test "${{ steps.test.outputs.exit }}" = "0"

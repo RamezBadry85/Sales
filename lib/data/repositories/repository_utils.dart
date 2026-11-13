@@ -29,12 +29,18 @@ Future<T> guardDatabase<T>(
   }
 }
 
+/// Escape character used in `LIKE` clauses (matches [likePattern]).
+///
+/// A visible ASCII character is used instead of a backslash so the generated
+/// SQL stays readable in logs.
+const String likeEscape = '!';
+
 /// Escapes a value for a SQL `LIKE` pattern and adds wildcards.
 String likePattern(String raw) {
   final escaped = raw
-      .replaceAll(r'\', r'\\')
-      .replaceAll('%', r'\%')
-      .replaceAll('_', r'\_');
+      .replaceAll(likeEscape, '$likeEscape$likeEscape')
+      .replaceAll('%', '$likeEscape%')
+      .replaceAll('_', '${likeEscape}_');
   return '%$escaped%';
 }
 

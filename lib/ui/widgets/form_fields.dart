@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/decimal_format.dart';
@@ -122,7 +123,7 @@ class DecimalTextField extends StatelessWidget {
         }
         final parsed = DecimalFormat.tryParse(text);
         if (parsed == null) return l10n.t('validation.priceInvalid');
-        if (!allowNegative && parsed.isNegative) {
+        if (!allowNegative && parsed < Decimal.zero) {
           return l10n.t('validation.priceInvalid');
         }
         return null;

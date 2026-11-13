@@ -6,7 +6,7 @@ import '../../../core/error_messages.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../data/models/product.dart';
 import '../../../data/repositories/product_repository.dart';
-import '../../widgets/form_fields.dart';
+import '../widgets/form_fields.dart';
 
 /// Displays the add/edit product dialog and returns the saved product.
 Future<Product?> showProductFormDialog(

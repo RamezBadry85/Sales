@@ -7,7 +7,7 @@ import '../pages/customers_page.dart';
 import '../pages/dashboard_page.dart';
 import '../pages/products_page.dart';
 import '../pages/settings_page.dart';
-import 'placeholder_page.dart';
+import '../pages/placeholder_page.dart';
 
 /// Navigation destinations of the application shell.
 enum AppSection {

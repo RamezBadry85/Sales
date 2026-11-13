@@ -1,5 +1,4 @@
 import 'package:sales/data/database/app_database.dart';
-import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// In-memory database used by repository and widget tests.
