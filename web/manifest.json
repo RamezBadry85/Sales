@@ -1,12 +1,12 @@
 {
-    "name": "المبيعات – إدارة المبيعات",
-    "short_name": "المبيعات",
+    "name": "sales",
+    "short_name": "sales",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0F5C8C",
-    "theme_color": "#0F5C8C",
-    "description": "تطبيق إدارة المبيعات (عملاء، منتجات، عروض أسعار)",
-    "orientation": "any",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "A new Flutter project.",
+    "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
         {
@@ -31,7 +31,5 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ],
-    "lang": "ar",
-    "dir": "rtl"
+    ]
 }
