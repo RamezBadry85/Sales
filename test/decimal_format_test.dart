@@ -27,7 +27,10 @@ void main() {
       expect(DecimalFormat.tryParse(null), isNull);
       expect(DecimalFormat.tryParse('abc'), isNull);
       expect(DecimalFormat.tryParse('.'), isNull);
+      expect(DecimalFormat.tryParse(','), isNull);
       expect(DecimalFormat.tryParse('-'), isNull);
+      expect(DecimalFormat.tryParse('--1'), isNull);
+      expect(DecimalFormat.tryParse('1.2.3'), isNull);
     });
   });
 
@@ -51,11 +54,50 @@ void main() {
     test('rounds half up across integer boundaries', () {
       expect(
         DecimalFormat.format(Decimal.parse('9.995'), maxFractionDigits: 2),
+        '10',
+      );
+      expect(
+        DecimalFormat.format(
+          Decimal.parse('9.995'),
+          maxFractionDigits: 2,
+          minFractionDigits: 2,
+        ),
         '10.00',
       );
       expect(
-        DecimalFormat.format(Decimal.parse('99.999'), maxFractionDigits: 2),
+        DecimalFormat.format(
+          Decimal.parse('99.999'),
+          maxFractionDigits: 2,
+          minFractionDigits: 2,
+        ),
         '100.00',
+      );
+      expect(
+        DecimalFormat.format(
+          Decimal.parse('1234.567'),
+          maxFractionDigits: 2,
+          minFractionDigits: 2,
+        ),
+        '1,234.57',
+      );
+    });
+
+    test('rounds half away from zero for negatives', () {
+      expect(
+        DecimalFormat.format(Decimal.parse('-2.345'), maxFractionDigits: 2),
+        '-2.35',
+      );
+    });
+
+    test('handles very small and very large values', () {
+      expect(DecimalFormat.format(Decimal.parse('0.001')), '0');
+      expect(
+        DecimalFormat.format(Decimal.parse('0.001'), maxFractionDigits: 3),
+        '0.001',
+      );
+      expect(
+        DecimalFormat.format(Decimal.parse('123456789.12'), minFractionDigits: 2),
+        '123,456,789.12',
       );
     });
 

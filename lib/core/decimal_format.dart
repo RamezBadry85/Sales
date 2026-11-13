@@ -78,9 +78,8 @@ class DecimalFormat {
     if (result.startsWith('+.')) result = '0${result.substring(1)}';
 
     if (!RegExp(r'^[+-]?\d*\.?\d*$').hasMatch(result)) return null;
-    if (result == '.' || result == '-' || result == '+' || result == '-' '.') {
-      return null;
-    }
+    // A bare separator or sign carries no numeric information.
+    if (!RegExp(r'\d').hasMatch(result)) return null;
     return result;
   }
 
