@@ -8,4 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "probe ok"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter --version
+      - run: dart --version
+      - run: java -version 2>&1
+      - run: echo "ANDROID_HOME=$ANDROID_HOME"
