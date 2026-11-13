@@ -400,7 +400,7 @@ class _ProductsPageState extends State<ProductsPage> {
     final l10n = context.l10n;
     return ListView.separated(
       itemCount: _controller.products.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final product = _controller.products[index];
         return Card(

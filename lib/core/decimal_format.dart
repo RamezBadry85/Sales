@@ -144,14 +144,16 @@ class DecimalFormat {
       return '-${format(-rounded, minFractionDigits: minFractionDigits, maxFractionDigits: maxFractionDigits, grouping: grouping)}';
     }
     if (text.contains('e') || text.contains('E')) {
-      // Extremely large/small exponents are not expected for business data;
-      // fall back to a plain representation.
-      text = rounded.toDouble().toStringAsFixed(maxFractionDigits);
+      // Exponent notation appears when rounding produces a round number such
+      // as 10 (from 9.995). Expand it without losing precision.
+      text = _expandExponent(text, maxFractionDigits);
     }
 
+    // The decimal string may come back in exponent form (e.g. "1E+3");
+    // normalize it before splitting into integer and fraction parts.
+    final dot = text.indexOf('.');
     var integerPart = text;
     var fractionPart = '';
-    final dot = text.indexOf('.');
     if (dot >= 0) {
       integerPart = text.substring(0, dot);
       fractionPart = text.substring(dot + 1);
@@ -169,6 +171,35 @@ class DecimalFormat {
 
     final grouped = grouping ? _groupDigits(integerPart) : integerPart;
     return fractionPart.isEmpty ? grouped : '$grouped.$fractionPart';
+  }
+
+  /// Expands exponent notation (`1E+1`) into plain decimal text.
+  static String _expandExponent(String text, int maxFractionDigits) {
+    final match = RegExp(r'^([+-]?)(\d+)(?:\.(\d+))?[eE]([+-]?\d+)$').firstMatch(text);
+    if (match == null) return text;
+    final sign = match.group(1) ?? '';
+    final integerDigits = match.group(2) ?? '0';
+    final fractionDigits = match.group(3) ?? '';
+    final exponent = int.parse(match.group(4) ?? '0');
+
+    var digits = '$integerDigits$fractionDigits';
+    var pointPosition = integerDigits.length + exponent;
+    if (pointPosition <= 0) {
+      digits = '${'0' * (1 - pointPosition)}$digits';
+      pointPosition = 1;
+    } else if (pointPosition > digits.length) {
+      digits = digits.padRight(pointPosition, '0');
+    }
+    final integerPart = digits.substring(0, pointPosition);
+    var fractionPart = digits.substring(pointPosition);
+    if (fractionPart.length > maxFractionDigits) {
+      fractionPart = fractionPart.substring(0, maxFractionDigits);
+    }
+    fractionPart = fractionPart.replaceFirst(RegExp(r'0+$'), '');
+    final trimmedFraction = fractionPart;
+    return trimmedFraction.isEmpty
+        ? '$sign$integerPart'
+        : '$sign$integerPart.$trimmedFraction';
   }
 
   static String _groupDigits(String digits) {

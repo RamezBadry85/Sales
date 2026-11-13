@@ -421,7 +421,7 @@ class _CustomersPageState extends State<CustomersPage> {
     final l10n = context.l10n;
     return ListView.separated(
       itemCount: _controller.customers.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final customer = _controller.customers[index];
         return Card(

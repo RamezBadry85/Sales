@@ -54,12 +54,12 @@ class ProductRepository {
           final pattern = likePattern(trimmed);
           final esc = likeEscape;
           where.add('('
-              'code LIKE ? ESCAPE "$esc" OR '
-              'description LIKE ? ESCAPE "$esc" OR '
-              'company LIKE ? ESCAPE "$esc" OR '
-              'category LIKE ? ESCAPE "$esc" OR '
-              'unit LIKE ? ESCAPE "$esc" OR '
-              'notes LIKE ? ESCAPE "$esc"'
+              'code LIKE ? ESCAPE '$esc' OR '
+              'description LIKE ? ESCAPE '$esc' OR '
+              'company LIKE ? ESCAPE '$esc' OR '
+              'category LIKE ? ESCAPE '$esc' OR '
+              'unit LIKE ? ESCAPE '$esc' OR '
+              'notes LIKE ? ESCAPE '$esc''
               ')');
           args.addAll(List<Object?>.filled(6, pattern));
         }
@@ -124,7 +124,7 @@ class ProductRepository {
         final db = await _database.database;
         final rows = await db.rawQuery(
           'SELECT DISTINCT $column AS value FROM $_table '
-          'WHERE $column IS NOT NULL AND TRIM($column) <> "" '
+          'WHERE $column IS NOT NULL AND TRIM($column) <> \'\' '
           'ORDER BY $column COLLATE NOCASE ASC',
         );
         return rows
