@@ -3,6 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sales/core/decimal_format.dart';
 
 void main() {
+  group('DecimalTextField filtering', () {
+    test('Arabic decimal separator survives input filtering', () {
+      // The form field filters characters before parsing; the separator must
+      // be preserved or '١٢٥٠٫٧٥' would silently become 125075.
+      final filtered = '١٢٥٠٫٧٥'
+          .split('')
+          .where((c) => RegExp('[0-9.,\u0660-\u0669\u06F0-\u06F9\u066B\u066C]')
+              .hasMatch(c))
+          .join();
+      expect(filtered, '١٢٥٠٫٧٥');
+      expect(DecimalFormat.tryParse(filtered).toString(), '1250.75');
+    });
+  });
+
   group('DecimalFormat.tryParse', () {
     test('parses plain integers and decimals', () {
       expect(DecimalFormat.tryParse('1234'), Decimal.fromInt(1234));

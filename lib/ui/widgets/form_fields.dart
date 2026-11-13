@@ -73,6 +73,14 @@ class LabeledTextField extends StatelessWidget {
   }
 }
 
+/// Characters accepted by [DecimalTextField]: ASCII/Arabic digits, '.' and ','
+/// separators, and the Arabic decimal separator U+066B / thousands U+066C.
+final RegExp _decimalChars = RegExp('[0-9.,\u0660-\u0669\u06F0-\u06F9\u066B\u066C]');
+
+/// Same as [_decimalChars] but also accepts a minus sign.
+final RegExp _decimalCharsWithSign =
+    RegExp('[0-9.,\\-\u0660-\u0669\u06F0-\u06F9\u066B\u066C]');
+
 /// Numeric field with Arabic-digit friendly input and decimal validation.
 class DecimalTextField extends StatelessWidget {
   const DecimalTextField({
@@ -110,9 +118,12 @@ class DecimalTextField extends StatelessWidget {
       autofocus: autofocus,
       textDirection: TextDirection.ltr,
       onChanged: onChanged,
+      // Digits (ASCII, Arabic-Indic, extended Arabic-Indic) plus the '.' and
+      // ',' separators and the Arabic decimal/thousands separators (U+066B,
+      // U+066C). Filtering must never drop the separator a user typed.
       inputFormatters: <TextInputFormatter>[
         FilteringTextInputFormatter.allow(
-          allowNegative ? RegExp(r'[0-9.,\-\u0660-\u0669\u06F0-\u06F9]') : RegExp(r'[0-9.,\u0660-\u0669\u06F0-\u06F9]'),
+          allowNegative ? _decimalCharsWithSign : _decimalChars,
         ),
       ],
       validator: (value) {
