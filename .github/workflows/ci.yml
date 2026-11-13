@@ -4,7 +4,7 @@ on:
     branches: ["**"]
   workflow_dispatch:
 jobs:
-  probe:
+  analyze-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,4 +13,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter analyze
+      - name: Analyze
+        run: flutter analyze
+      - name: Test
+        run: flutter test --reporter expanded
