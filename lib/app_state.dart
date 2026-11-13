@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'core/settings_controller.dart';
 import 'data/database/app_database.dart';
 import 'data/repositories/customer_repository.dart';
+import 'data/repositories/customer_store.dart';
 import 'data/repositories/product_repository.dart';
+import 'data/repositories/product_store.dart';
 
 /// Composition root: owns the long lived services used by the UI.
 class AppState {
@@ -17,8 +19,8 @@ class AppState {
 
   final SettingsController settings;
   final AppDatabase database;
-  final CustomerRepository customers;
-  final ProductRepository products;
+  final CustomerStore customers;
+  final ProductStore products;
 
   /// Human readable location of the SQLite file, when available.
   final String? databasePath;
@@ -40,8 +42,8 @@ class AppState {
     return AppState(
       settings: settings,
       database: database,
-      customers: CustomerRepository(database: database),
-      products: ProductRepository(database: database),
+      customers: SqliteCustomerStore(CustomerRepository(database: database)),
+      products: SqliteProductStore(ProductRepository(database: database)),
       databasePath: path,
     );
   }

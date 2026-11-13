@@ -5,12 +5,13 @@ import 'package:flutter/foundation.dart';
 import '../../core/app_exception.dart';
 import '../../data/models/customer.dart';
 import '../../data/repositories/customer_repository.dart';
+import '../../data/repositories/customer_store.dart';
 
 /// State for the customer list: search text, sorting and derived counts.
 class CustomerListController extends ChangeNotifier {
   CustomerListController(this._repository);
 
-  final CustomerRepository _repository;
+  final CustomerStore _repository;
 
   List<Customer> _customers = const <Customer>[];
   List<Customer> _filtered = const <Customer>[];

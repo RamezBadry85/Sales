@@ -5,12 +5,13 @@ import 'package:flutter/foundation.dart';
 import '../../core/app_exception.dart';
 import '../../data/models/product.dart';
 import '../../data/repositories/product_repository.dart';
+import '../../data/repositories/product_store.dart';
 
 /// State for the product list: search, category/company filters and sorting.
 class ProductListController extends ChangeNotifier {
   ProductListController(this._repository);
 
-  final ProductRepository _repository;
+  final ProductStore _repository;
 
   List<Product> _products = const <Product>[];
   List<Product> _filtered = const <Product>[];

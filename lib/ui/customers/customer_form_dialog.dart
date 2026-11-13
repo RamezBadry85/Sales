@@ -5,13 +5,13 @@ import '../../core/app_exception.dart';
 import '../../core/error_messages.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../data/models/customer.dart';
-import '../../data/repositories/customer_repository.dart';
+import '../../data/repositories/customer_store.dart';
 import '../widgets/form_fields.dart';
 
 /// Displays the add/edit customer dialog and returns the saved customer.
 Future<Customer?> showCustomerFormDialog(
   BuildContext context, {
-  required CustomerRepository repository,
+  required CustomerStore repository,
   Customer? customer,
 }) {
   return showDialog<Customer>(
@@ -32,7 +32,7 @@ class CustomerFormDialog extends StatefulWidget {
     this.customer,
   });
 
-  final CustomerRepository repository;
+  final CustomerStore repository;
   final Customer? customer;
 
   @override

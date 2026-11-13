@@ -9,10 +9,10 @@ import 'package:sales/data/models/product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import '../support/app_test_harness.dart';
+import '../support/fake_stores.dart';
 import '../support/test_database.dart';
 
-/// End to end UI tests for the Arabic-first shell, customer and product flows.
+/// End-to-end UI tests for the Arabic-first shell, customers and products.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -20,87 +20,97 @@ void main() {
     sqfliteFfiInit();
   });
 
-  setUp(() {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-  });
-
-  Future<SalesApp> buildApp(TestDatabase db, {String locale = 'ar'}) async {
-    final settings = await SettingsController.load();
-    await settings.setLocale(Locale(locale));
-    final state = await testAppState(
-      settings: settings,
-      database: db.appDatabase,
-    );
-    return SalesApp(state: state);
+  // The UI tests run on a wide desktop-like surface so the sidebar layout is
+  // exercised, then the compact layout is verified separately.
+  Future<void> useDesktopSurface(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1500, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
   }
 
-  testWidgets('starts in Arabic RTL with Arabic navigation labels',
-      (tester) async {
+  Future<
+      ({
+        InMemoryCustomerStore customers,
+        InMemoryProductStore products,
+      })> buildApp(
+    WidgetTester tester, {
+    String locale = 'ar',
+  }) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final settings = await SettingsController.load();
+    await settings.setLocale(Locale(locale));
+    final customers = InMemoryCustomerStore();
+    final products = InMemoryProductStore();
     final db = await TestDatabase.create();
     addTearDown(db.close);
-
-    await tester.pumpWidget(await buildApp(db));
-    await tester.pumpAndSettle();
-
-    final direction = Directionality.of(
-      tester.element(find.byType(Scaffold).first),
+    final state = await testAppStateFor(
+      settings: settings,
+      customers: customers,
+      products: products,
+      database: db.appDatabase,
     );
+    await tester.pumpWidget(SalesApp(state: state));
+    await tester.pumpAndSettle();
+    return (customers: customers, products: products);
+  }
+
+  testWidgets('renders Arabic RTL navigation in a fresh database',
+      (tester) async {
+    await useDesktopSurface(tester);
+    await buildApp(tester);
+
+    final direction = Directionality.of(tester.element(find.byType(Scaffold).first));
     expect(direction, TextDirection.rtl);
+    expect(find.text('لوحة التحكم'), findsWidgets);
     expect(find.text('العملاء'), findsWidgets);
     expect(find.text('المنتجات'), findsWidgets);
-    expect(find.text('لوحة التحكم'), findsWidgets);
+    // No demo statistics: the dashboard shows real zeros.
+    expect(find.text('0'), findsNWidgets(2));
+    expect(find.text('قاعدة البيانات فارغة. ابدأ بإضافة العملاء والمنتجات.'),
+        findsOneWidget);
   });
 
-  testWidgets('switching language produces an English LTR layout',
+  testWidgets('renders English LTR when the language is English',
       (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
+    await useDesktopSurface(tester);
+    await buildApp(tester, locale: 'en');
 
-    await tester.pumpWidget(await buildApp(db, locale: 'en'));
-    await tester.pumpAndSettle();
-
-    final direction = Directionality.of(
-      tester.element(find.byType(Scaffold).first),
-    );
+    final direction = Directionality.of(tester.element(find.byType(Scaffold).first));
     expect(direction, TextDirection.ltr);
-    expect(find.text('Customers'), findsWidgets);
     expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Customers'), findsWidgets);
   });
 
-  testWidgets('empty customer list shows an empty state, never fake rows',
+  testWidgets('customer list shows an empty state instead of fake rows',
       (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
+    await useDesktopSurface(tester);
+    await buildApp(tester);
 
-    await tester.pumpWidget(await buildApp(db));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('العملاء').last);
+    await tester.tap(find.text('العملاء').first);
     await tester.pumpAndSettle();
 
     expect(find.text('لا يوجد عملاء بعد'), findsOneWidget);
-    expect(find.text('إضافة عميل'), findsWidgets);
-    // No data rows exist in a fresh database.
-    expect(find.byType(DataRow), findsNothing);
+    expect(find.text('أضف أول عميل للبدء في إنشاء عروض الأسعار.'), findsOneWidget);
+    expect(find.byType(DataTable), findsNothing);
   });
 
-  testWidgets('customer created through the form is persisted and listed',
+  testWidgets('creates a customer through the form and lists it',
       (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
 
-    await tester.pumpWidget(await buildApp(db));
+    await tester.tap(find.text('العملاء').first);
     await tester.pumpAndSettle();
-
-    await tester.tap(find.text('العملاء').last);
-    await tester.pumpAndSettle();
-
     await tester.tap(find.widgetWithText(FilledButton, 'إضافة عميل').first);
     await tester.pumpAndSettle();
 
     await tester.enterText(
       find.widgetWithText(TextFormField, 'اسم العميل *'),
       'مستشفى الشفاء',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'اسم الحساب'),
+      'حساب الشفاء',
     );
     await tester.enterText(
       find.widgetWithText(TextFormField, 'رقم الهاتف'),
@@ -110,45 +120,104 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مستشفى الشفاء'), findsWidgets);
+    expect(find.text('حساب الشفاء'), findsWidgets);
 
-    // Verify persistence in the database itself, not just the widget tree.
-    final stored = await testCustomers(db).all();
+    final stored = await stores.customers.all();
     expect(stored.length, 1);
     expect(stored.single.name, 'مستشفى الشفاء');
+    expect(stored.single.accountName, 'حساب الشفاء');
     expect(stored.single.phone, '01000000000');
   });
 
-  testWidgets('validation blocks an empty customer name', (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
+  testWidgets('blocks saving a customer without a name', (tester) async {
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
 
-    await tester.pumpWidget(await buildApp(db));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('العملاء').last);
+    await tester.tap(find.text('العملاء').first);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'إضافة عميل').first);
     await tester.pumpAndSettle();
-
     await tester.tap(find.widgetWithText(FilledButton, 'حفظ'));
     await tester.pumpAndSettle();
 
     expect(find.text('أدخل الاسم.'), findsOneWidget);
-    expect(await testCustomers(db).count(), 0);
+    expect(await stores.customers.count(), 0);
   });
 
-  testWidgets('product with a duplicated code is accepted', (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
-    final products = testProducts(db);
-    await products.insert(
+  testWidgets('rejects an invalid email', (tester) async {
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
+
+    await tester.tap(find.text('العملاء').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'إضافة عميل').first);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'اسم العميل *'), 'X');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'البريد الإلكتروني'),
+      'bad-email',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'حفظ'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('أدخل بريداً إلكترونياً صحيحاً.'), findsOneWidget);
+    expect(await stores.customers.count(), 0);
+  });
+
+  testWidgets('deleting a customer requires confirmation', (tester) async {
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
+    await stores.customers.insert(const Customer(name: 'قابل للحذف'));
+
+    await tester.tap(find.text('العملاء').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('حذف').first);
+    await tester.pumpAndSettle();
+    expect(find.text('حذف العميل؟'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'إلغاء'));
+    await tester.pumpAndSettle();
+    expect(await stores.customers.count(), 1);
+
+    await tester.tap(find.byTooltip('حذف').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'حذف'));
+    await tester.pumpAndSettle();
+
+    expect(await stores.customers.count(), 0);
+    expect(find.text('تم حذف العميل.'), findsWidgets);
+  });
+
+  testWidgets('search filters customers', (tester) async {
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
+    await stores.customers.insert(const Customer(name: 'Alpha Hospital'));
+    await stores.customers.insert(const Customer(name: 'Beta Clinic'));
+
+    await tester.tap(find.text('العملاء').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Alpha Hospital'), findsWidgets);
+    expect(find.text('Beta Clinic'), findsWidgets);
+
+    await tester.enterText(find.byType(TextField).first, 'Beta');
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Beta Clinic'), findsWidgets);
+    expect(find.text('Alpha Hospital'), findsNothing);
+  });
+
+  testWidgets('products with duplicate codes are both preserved',
+      (tester) async {
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
+    await stores.products.insert(
       const Product(code: 'DUP-1', description: 'First variant'),
     );
 
-    await tester.pumpWidget(await buildApp(db));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('المنتجات').last);
+    await tester.tap(find.text('المنتجات').first);
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'إضافة منتج').first);
     await tester.pumpAndSettle();
@@ -157,11 +226,14 @@ void main() {
       find.widgetWithText(TextFormField, 'وصف المنتج *'),
       'Second variant',
     );
-    await tester.enterText(find.widgetWithText(TextFormField, 'كود المنتج'), 'DUP-1');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'كود المنتج'),
+      'DUP-1',
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'حفظ'));
     await tester.pumpAndSettle();
 
-    final stored = await products.search(query: 'DUP-1');
+    final stored = await stores.products.search(query: 'DUP-1');
     expect(stored.length, 2);
     expect(
       stored.map((p) => p.description).toSet(),
@@ -169,69 +241,50 @@ void main() {
     );
   });
 
-  testWidgets('deleting a customer requires confirmation', (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
-    final repo = testCustomers(db);
-    final id = await repo.insert(const Customer(name: 'قابل للحذف'));
+  testWidgets('store form saves a price with Arabic digits', (tester) async {
+    await useDesktopSurface(tester);
+    final stores = await buildApp(tester);
 
-    await tester.pumpWidget(await buildApp(db));
+    await tester.tap(find.text('المنتجات').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'إضافة منتج').first);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('العملاء').last);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'وصف المنتج *'),
+      'جهاز',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'السعر الافتراضي'),
+      '١٢٥٠٫٧٥',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'حفظ'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('حذف').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('حذف العميل؟'), findsOneWidget);
-    // Cancel keeps the record.
-    await tester.tap(find.widgetWithText(TextButton, 'إلغاء'));
-    await tester.pumpAndSettle();
-    expect(await repo.findById(id), isNotNull);
-
-    await tester.tap(find.byTooltip('حذف').first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'حذف'));
-    await tester.pumpAndSettle();
-
-    expect(await repo.findById(id), isNull);
+    final stored = await stores.products.all();
+    expect(stored.single.defaultPrice.toString(), '1250.75');
   });
 
-  testWidgets('search filters the customer list', (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
-    final repo = testCustomers(db);
-    await repo.insert(const Customer(name: 'Alpha Hospital'));
-    await repo.insert(const Customer(name: 'Beta Clinic'));
-
-    await tester.pumpWidget(await buildApp(db));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('العملاء').last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Alpha Hospital'), findsWidgets);
-    expect(find.text('Beta Clinic'), findsWidgets);
-
-    await tester.enterText(find.byType(TextField).first, 'Beta');
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Beta Clinic'), findsWidgets);
-    expect(find.text('Alpha Hospital'), findsNothing);
-  });
-
-  testWidgets('unsupported module shows a clear placeholder without data',
+  testWidgets('modules from later phases show an explicit placeholder',
       (tester) async {
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
+    await useDesktopSurface(tester);
+    await buildApp(tester);
 
-    await tester.pumpWidget(await buildApp(db));
+    await tester.tap(find.text('عروض الأسعار').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('عروض الأسعار').last);
-    await tester.pumpAndSettle();
-
     expect(find.text('هذا القسم سيتم إضافته في مرحلة لاحقة.'), findsWidgets);
+  });
+
+  testWidgets('compact layout uses bottom navigation and a drawer',
+      (tester) async {
+    tester.view.physicalSize = const Size(420, 900);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await buildApp(tester);
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byIcon(Icons.menu), findsOneWidget);
   });
 
   test('localization delegate supports Arabic and English only', () {

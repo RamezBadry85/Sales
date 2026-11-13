@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_exception.dart';
-import '../../../core/decimal_format.dart';
-import '../../../core/error_messages.dart';
-import '../../../core/l10n/app_localizations.dart';
-import '../../../data/models/product.dart';
-import '../../../data/repositories/product_repository.dart';
+import '../../core/app_exception.dart';
+import '../../core/decimal_format.dart';
+import '../../core/error_messages.dart';
+import '../../core/l10n/app_localizations.dart';
+import '../../data/models/product.dart';
+import '../../data/repositories/product_store.dart';
 import '../widgets/form_fields.dart';
 
 /// Displays the add/edit product dialog and returns the saved product.
 Future<Product?> showProductFormDialog(
   BuildContext context, {
-  required ProductRepository repository,
+  required ProductStore repository,
   Product? product,
 }) {
   return showDialog<Product>(
@@ -35,7 +35,7 @@ class ProductFormDialog extends StatefulWidget {
     this.product,
   });
 
-  final ProductRepository repository;
+  final ProductStore repository;
   final Product? product;
 
   @override
