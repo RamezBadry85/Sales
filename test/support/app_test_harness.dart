@@ -3,6 +3,7 @@ import 'package:sales/core/settings_controller.dart';
 import 'package:sales/data/database/app_database.dart';
 import 'package:sales/data/repositories/customer_store.dart';
 import 'package:sales/data/repositories/product_store.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'fake_stores.dart';
 
@@ -14,32 +15,48 @@ import 'fake_stores.dart';
 /// run against a real SQLite database.
 Future<AppState> testAppState({
   required SettingsController settings,
-  required AppDatabase database,
+  AppDatabase? database,
   CustomerStore? customers,
   ProductStore? products,
 }) async {
+  final handle = database ?? unopenedTestDatabase();
   return AppState(
     settings: settings,
-    database: database,
+    database: handle,
     customers: customers ?? InMemoryCustomerStore(),
     products: products ?? InMemoryProductStore(),
-    databasePath: database.path,
+    databasePath: handle.path,
   );
 }
 
-/// Variant of [testAppState] that also supplies the (unused for persistence)
-/// database handle and explicit stores.
+/// Variant of [testAppState] that supplies explicit stores.
 Future<AppState> testAppStateFor({
   required SettingsController settings,
   required CustomerStore customers,
   required ProductStore products,
-  required AppDatabase database,
+  AppDatabase? database,
 }) async {
+  final handle = database ?? unopenedTestDatabase();
   return AppState(
     settings: settings,
-    database: database,
+    database: handle,
     customers: customers,
     products: products,
-    databasePath: database.path,
+    databasePath: handle.path,
+  );
+}
+
+/// Database handle for widget tests.
+///
+/// Opening a real SQLite connection performs asynchronous platform work that
+/// never completes inside the `testWidgets` fake async zone, and the widget
+/// layer never touches the connection directly (it goes through the store
+/// contracts). An unopened handle is therefore sufficient and keeps the tests
+/// deterministic. Real persistence is covered by the repository tests.
+AppDatabase unopenedTestDatabase() {
+  sqfliteFfiInit();
+  return AppDatabase.forTesting(
+    factory: databaseFactoryFfi,
+    path: inMemoryDatabasePath,
   );
 }

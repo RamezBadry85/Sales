@@ -7,19 +7,13 @@ import 'package:sales/core/settings_controller.dart';
 import 'package:sales/data/models/customer.dart';
 import 'package:sales/data/models/product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../support/app_test_harness.dart';
 import '../support/fake_stores.dart';
-import '../support/test_database.dart';
 
 /// End-to-end UI tests for the Arabic-first shell, customers and products.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(() {
-    sqfliteFfiInit();
-  });
 
   // The UI tests run on a wide desktop-like surface so the sidebar layout is
   // exercised, then the compact layout is verified separately.
@@ -42,13 +36,10 @@ void main() {
     await settings.setLocale(Locale(locale));
     final customers = InMemoryCustomerStore();
     final products = InMemoryProductStore();
-    final db = await TestDatabase.create();
-    addTearDown(db.close);
     final state = await testAppStateFor(
       settings: settings,
       customers: customers,
       products: products,
-      database: db.appDatabase,
     );
     await tester.pumpWidget(SalesApp(state: state));
     await tester.pumpAndSettle();
