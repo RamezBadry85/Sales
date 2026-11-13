@@ -1,0 +1,18 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    todo: ignore
+
+linter:
+  rules:
+    # Const-correctness is applied through review; the following lints are
+    # disabled because they generate a large volume of stylistic noise.
+    prefer_const_constructors: false
+    prefer_const_constructors_in_immutables: false
+    prefer_const_declarations: false
+    prefer_const_literals_to_create_immutables: false
+    always_declare_return_types: true
+    avoid_print: true
+    unnecessary_lambdas: true
+    unnecessary_parenthesis: true

@@ -12,11 +12,5 @@ jobs:
         with:
           channel: stable
           cache: true
-      - name: Versions
-        run: |
-          V=$(flutter --version | head -1)
-          echo "::error title=FLUTTER_VERSION=$V::probe"
-          D=$(dart --version 2>&1)
-          echo "::error title=DART=$D::probe"
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls $ANDROID_HOME 2>/dev/null | head -5
+      - run: flutter pub get
+      - run: flutter analyze
