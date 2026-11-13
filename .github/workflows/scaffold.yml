@@ -1,0 +1,38 @@
+name: Scaffold platforms
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scaffold:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/5ed8b7ad-sales
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate platform scaffolding
+        run: |
+          flutter create --platforms=android,web,linux --org com.ramezbadry --project-name sales /tmp/scaffold
+          cp -r /tmp/scaffold/android .
+          cp -r /tmp/scaffold/web .
+          cp -r /tmp/scaffold/linux .
+          cp /tmp/scaffold/.metadata .
+          ls -R android | head -20
+      - name: Restore project pubspec and lib
+        run: |
+          git checkout -- pubspec.yaml lib 2>/dev/null || true
+          git status --short | head -40
+      - name: Commit scaffolding
+        run: |
+          git config user.name "Arena Agent"
+          git config user.email "agent@arena.ai"
+          git add -A
+          git commit -m "chore: generate android, web and linux platform scaffolding"
+          git push origin HEAD:arena/5ed8b7ad-sales
