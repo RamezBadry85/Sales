@@ -12,7 +12,11 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: flutter --version
-      - run: dart --version
-      - run: java -version 2>&1
-      - run: echo "ANDROID_HOME=$ANDROID_HOME"
+      - name: Versions
+        run: |
+          V=$(flutter --version | head -1)
+          echo "::error title=FLUTTER_VERSION=$V::probe"
+          D=$(dart --version 2>&1)
+          echo "::error title=DART=$D::probe"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls $ANDROID_HOME 2>/dev/null | head -5
