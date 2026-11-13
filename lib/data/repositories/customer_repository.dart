@@ -1,4 +1,4 @@
-import 'package:sqflite_common/sqlite_api.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../core/app_exception.dart';
 import '../database/app_database.dart';

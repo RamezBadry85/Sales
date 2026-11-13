@@ -160,6 +160,9 @@ class DecimalFormat {
     while (fractionPart.length > minFractionDigits && fractionPart.endsWith('0')) {
       fractionPart = fractionPart.substring(0, fractionPart.length - 1);
     }
+    if (fractionPart.length < minFractionDigits) {
+      fractionPart = fractionPart.padRight(minFractionDigits, '0');
+    }
     if (integerPart.isEmpty) integerPart = '0';
 
     final grouped = grouping ? _groupDigits(integerPart) : integerPart;

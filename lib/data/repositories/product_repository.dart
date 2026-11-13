@@ -1,4 +1,6 @@
-import 'package:sqflite_common/sqlite_api.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'package:decimal/decimal.dart';
 
 import '../../core/app_exception.dart';
 import '../../core/decimal_format.dart';
@@ -207,7 +209,7 @@ class ProductRepository {
       throw AppException(AppErrorCode.required, field: 'description');
     }
     final price = product.defaultPrice;
-    if (price != null && price.isNegative) {
+    if (price != null && price < Decimal.zero) {
       throw AppException(AppErrorCode.invalidNumber, field: 'default_price');
     }
     // Guard against accidental precision loss when a value cannot be stored.

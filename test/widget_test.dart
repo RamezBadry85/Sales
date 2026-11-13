@@ -4,15 +4,15 @@ import 'package:sales/core/app_exception.dart';
 import 'package:sales/core/l10n/app_localizations.dart';
 import 'package:sales/data/models/product.dart';
 
-import 'decimal_format_test.dart' show main as decimalTests;
-import 'customer_repository_test.dart' show main as customerTests;
-import 'product_repository_test.dart' show main as productTests;
+import 'customer_repository_test.dart' as customer_tests;
+import 'decimal_format_test.dart' as decimal_tests;
+import 'product_repository_test.dart' as product_tests;
 
 /// Aggregated test entry point so a single `flutter test` covers everything.
 void main() {
-  decimalTests();
-  customerTests();
-  productTests();
+  decimal_tests.main();
+  customer_tests.main();
+  product_tests.main();
 
   group('Localization', () {
     test('Arabic is the default direction and English is LTR', () {

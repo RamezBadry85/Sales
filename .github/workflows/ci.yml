@@ -19,6 +19,7 @@ jobs:
           set +e
           flutter analyze > /tmp/analyze.txt 2>&1
           echo "exit=$?" >> $GITHUB_OUTPUT
+          head -c 400 /tmp/analyze.txt | python3 -c "import sys;print('::notice title=ANALYZE_HEAD::'+sys.stdin.read().replace(chr(10),' | '))" 
           python3 - <<'PY'
           import os
           text = open('/tmp/analyze.txt').read()

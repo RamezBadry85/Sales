@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/app_exception.dart';
-import '../../../core/error_messages.dart';
-import '../../../core/l10n/app_localizations.dart';
-import '../../../data/models/customer.dart';
-import '../../../data/repositories/customer_repository.dart';
-import '../../widgets/form_fields.dart';
+import '../../core/app_exception.dart';
+import '../../core/error_messages.dart';
+import '../../core/l10n/app_localizations.dart';
+import '../../data/models/customer.dart';
+import '../../data/repositories/customer_repository.dart';
+import '../widgets/form_fields.dart';
 
 /// Displays the add/edit customer dialog and returns the saved customer.
 Future<Customer?> showCustomerFormDialog(
