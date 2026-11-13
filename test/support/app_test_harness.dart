@@ -5,7 +5,6 @@ import 'package:sales/data/repositories/customer_store.dart';
 import 'package:sales/data/repositories/product_store.dart';
 
 import 'fake_stores.dart';
-import 'test_database.dart';
 
 /// Builds an [AppState] backed by in-memory stores.
 ///
