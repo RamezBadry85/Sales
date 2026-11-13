@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 /// Localization delegate for the application.
@@ -47,6 +48,13 @@ class AppLocalizations {
     }
     return text;
   }
+
+  /// All translation keys, exposed for parity tests and tooling.
+  @visibleForTesting
+  static Set<String> get englishKeys => _en.keys.toSet();
+
+  @visibleForTesting
+  static Set<String> get arabicKeys => _ar.keys.toSet();
 
   static const Map<String, String> _en = {
     'app.title': 'Sales',
@@ -185,7 +193,11 @@ class AppLocalizations {
     'settings.aboutText':
         'A local-first sales application that preserves the calculations of the original Excel workbook.',
     'settings.darkMode': 'Dark mode',
+    'settings.lightMode': 'Light mode',
     'settings.systemMode': 'Follow system',
+    'settings.storage': 'Local storage',
+    'settings.storageLocal': 'Stored on this device',
+    'settings.storageUnavailable': 'Not available on this platform',
     'validation.nameRequired': 'Enter a name.',
     'validation.tooLong': 'The value is too long.',
     'validation.priceInvalid': 'Enter a valid price (zero or greater).',
@@ -328,7 +340,11 @@ class AppLocalizations {
     'settings.aboutText':
         'تطبيق مبيعات يعمل محلياً ويحافظ على حسابات ملف الإكسل الأصلي.',
     'settings.darkMode': 'الوضع الليلي',
+    'settings.lightMode': 'الوضع النهاري',
     'settings.systemMode': 'حسب النظام',
+    'settings.storage': 'التخزين المحلي',
+    'settings.storageLocal': 'محفوظة على هذا الجهاز',
+    'settings.storageUnavailable': 'غير متاح على هذه المنصة',
     'validation.nameRequired': 'أدخل الاسم.',
     'validation.tooLong': 'القيمة طويلة جداً.',
     'validation.priceInvalid': 'أدخل سعراً صحيحاً (صفر أو أكثر).',

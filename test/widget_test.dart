@@ -39,6 +39,14 @@ void main() {
       expect(en.t('missing.key'), 'missing.key');
     });
 
+    test('Arabic and English dictionaries contain the same keys', () {
+      expect(
+        AppLocalizations.arabicKeys,
+        AppLocalizations.englishKeys,
+        reason: 'Every key must be translated in both languages',
+      );
+    });
+
     test('every Arabic key exists (parity with English)', () {
       final en = AppLocalizations(const Locale('en'));
       final ar = AppLocalizations(const Locale('ar'));

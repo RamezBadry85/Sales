@@ -9,7 +9,11 @@ String describeError(BuildContext context, Object error) {
   final l10n = context.l10n;
   if (error is AppException) {
     return switch (error.code) {
-      AppErrorCode.database => l10n.t('error.database'),
+      // When the platform cannot host the local database at all, explain
+      // that explicitly instead of a generic database error.
+      AppErrorCode.database => DatabaseOpener.isPersistenceSupported
+          ? l10n.t('error.database')
+          : persistenceUnavailableMessage(context),
       AppErrorCode.notFound => l10n.t('error.notFound'),
       AppErrorCode.inUse => l10n.t('error.inUse'),
       AppErrorCode.required => l10n.t('error.required'),

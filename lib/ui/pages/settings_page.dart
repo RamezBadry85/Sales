@@ -40,6 +40,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   SegmentedButton<String>(
+                    showSelectedIcon: false,
                     segments: [
                       ButtonSegment(
                         value: 'ar',
@@ -72,6 +73,7 @@ class SettingsPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   SegmentedButton<ThemeMode>(
+                    showSelectedIcon: false,
                     segments: [
                       ButtonSegment(
                         value: ThemeMode.system,
@@ -80,7 +82,8 @@ class SettingsPage extends StatelessWidget {
                       ),
                       ButtonSegment(
                         value: ThemeMode.light,
-                        label: const Text('☀'),
+                        label: Text(l10n.t('settings.lightMode')),
+                        icon: const Icon(Icons.light_mode_outlined, size: 18),
                       ),
                       ButtonSegment(
                         value: ThemeMode.dark,
