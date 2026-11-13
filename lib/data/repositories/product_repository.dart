@@ -51,17 +51,8 @@ class ProductRepository {
 
         final trimmed = query.trim();
         if (trimmed.isNotEmpty) {
-          final pattern = likePattern(trimmed);
-          final esc = likeEscape;
-          where.add('('
-              'code LIKE ? ESCAPE '$esc' OR '
-              'description LIKE ? ESCAPE '$esc' OR '
-              'company LIKE ? ESCAPE '$esc' OR '
-              'category LIKE ? ESCAPE '$esc' OR '
-              'unit LIKE ? ESCAPE '$esc' OR '
-              'notes LIKE ? ESCAPE '$esc''
-              ')');
-          args.addAll(List<Object?>.filled(6, pattern));
+          where.add(likeClause(const ['code', 'description', 'company', 'category', 'unit', 'notes']));
+          args.addAll(List<Object?>.filled(6, likePattern(trimmed)));
         }
         if (category != null && category.isNotEmpty) {
           where.add('category = ?');

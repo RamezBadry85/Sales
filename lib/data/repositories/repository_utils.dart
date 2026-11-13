@@ -44,6 +44,16 @@ String likePattern(String raw) {
   return '%$escaped%';
 }
 
+/// Builds a parenthesized `column LIKE ? ESCAPE '<char>'` clause for the
+/// given columns. One bound parameter is expected per column.
+String likeClause(List<String> columns) {
+  final quotedEscape = "'" + likeEscape + "'";
+  final parts = columns
+      .map((column) => '$column LIKE ? ESCAPE $quotedEscape')
+      .join(' OR ');
+  return '($parts)';
+}
+
 /// Replaces an empty/blank string with `null` for storage.
 String? nullableText(String? value) {
   if (value == null) return null;

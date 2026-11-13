@@ -59,8 +59,8 @@ class PageScaffold extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         actions: actions,
-        child: scrollable ? SingleChildScrollView(child: content) : content,
         hideHeader: isCompact,
+        child: scrollable ? SingleChildScrollView(child: content) : content,
       ),
     );
   }

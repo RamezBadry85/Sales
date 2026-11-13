@@ -40,17 +40,8 @@ class CustomerRepository {
         final args = <Object?>[];
 
         if (trimmed.isNotEmpty) {
-          final pattern = likePattern(trimmed);
-          final esc = likeEscape;
-          where.add('('
-              'name LIKE ? ESCAPE '$esc' OR '
-              'account_name LIKE ? ESCAPE '$esc' OR '
-              'contact_person LIKE ? ESCAPE '$esc' OR '
-              'phone LIKE ? ESCAPE '$esc' OR '
-              'email LIKE ? ESCAPE '$esc' OR '
-              'address LIKE ? ESCAPE '$esc''
-              ')');
-          args.addAll(List<Object?>.filled(6, pattern));
+          where.add(likeClause(const ['name', 'account_name', 'contact_person', 'phone', 'email', 'address']));
+          args.addAll(List<Object?>.filled(6, likePattern(trimmed)));
         }
 
         final rows = await db.query(
