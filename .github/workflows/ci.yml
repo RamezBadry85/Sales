@@ -6,6 +6,39 @@ on:
   workflow_dispatch:
 
 jobs:
+  # One-off job that generates the platform folders (android/web/linux) with
+  # the same `flutter create` template the SDK ships. It runs only for commits
+  # whose message contains [scaffold] and pushes the result back to the branch.
+  scaffold:
+    if: contains(github.event.head_commit.message, '[scaffold]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate platform folders
+        run: |
+          flutter create --platforms=android,web,linux --org com.ramezbadry --project-name sales /tmp/scaffold
+          cp -r /tmp/scaffold/android .
+          cp -r /tmp/scaffold/web .
+          cp -r /tmp/scaffold/linux .
+          cp /tmp/scaffold/.metadata .
+          rm -rf android/app/src/test android/app/src/androidTest
+          ls android
+      - name: Commit scaffolding
+        run: |
+          git config user.name "Arena Agent"
+          git config user.email "agent@arena.ai"
+          git add -A
+          git commit -m "chore: generate android, web and linux platform folders" || echo "nothing to commit"
+          git push origin HEAD:${{ github.ref_name }}
+
   analyze-test:
     runs-on: ubuntu-latest
     timeout-minutes: 25
