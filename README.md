@@ -120,8 +120,8 @@ flutter build windows --release  # Windows (يتطلب Windows + Visual Studio)
 ## الاختبارات / Tests
 
 ```bash
-flutter analyze   # لا توجد ملاحظات
-flutter test      # 94 اختباراً
+flutter analyze   # No issues found!
+flutter test      # 104 tests, all passed
 ```
 
 التغطية:
@@ -131,8 +131,22 @@ flutter test      # 94 اختباراً
   الاستمرارية بعد إعادة فتح ملف قاعدة البيانات.
 - `test/product_repository_test.dart`: كل الحقول، **تكرار الأكواد**، الفلترة،
   القيم المميزة، الترتيب، منع حذف منتج مستخدم.
+- `test/database_schema_test.dart`: إصدار المخطط، وجود كل الجداول والفهارس،
+  تفعيل المفاتيح الأجنبية، الحذف المتتالي لبنود عرض السعر، منع حذف عميل مرتبط،
+  وتخزين المبالغ كنصوص.
 - `test/ui/sales_app_test.dart`: RTL/LTR، التنقل المتجاوب، إنشاء عميل/منتج من
   النموذج، رسائل التحقق، تأكيد الحذف، البحث، وحالات فارغة بلا بيانات وهمية.
+
+### نتائج البناء / Build results
+
+تم البناء فعلياً عبر GitHub Actions (`Build` workflow) على `ubuntu-latest` و
+`windows-latest`:
+
+| المنصة | الأمر | النتيجة | حجم المخرج |
+| --- | --- | --- | --- |
+| Android | `flutter build apk --release` | ✅ نجح | ~27 MB |
+| Web | `flutter build web --release` | ✅ نجح | ~14 MB |
+| Windows | `flutter build windows --release` | ✅ نجح | ~13 MB |
 
 ## قاعدة العمل المحفوظة من الملف الأصلي
 
