@@ -18,7 +18,7 @@ void main() {
   // The UI tests run on a wide desktop-like surface so the sidebar layout is
   // exercised, then the compact layout is verified separately.
   Future<void> useDesktopSurface(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1500, 1000);
+    tester.view.physicalSize = const Size(1600, 1000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
   }
@@ -269,8 +269,8 @@ void main() {
 
   testWidgets('compact layout uses bottom navigation and a drawer',
       (tester) async {
-    tester.view.physicalSize = const Size(420, 900);
-    tester.view.devicePixelRatio = 3.0;
+    tester.view.physicalSize = const Size(390, 780);
+    tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     await buildApp(tester);

@@ -101,9 +101,13 @@ class _AppShellState extends State<AppShell> {
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             tooltip: l10n.t('nav.dashboard'),
           ),
-          title: Text(l10n.t(_section.labelKey())),
+          title: Text(
+            l10n.t(_section.labelKey()),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           actions: [
-            _LanguageButton(state: widget.state),
+            _LanguageButton(state: widget.state, compact: true),
           ],
         ),
         drawer: Drawer(
@@ -390,19 +394,39 @@ class _SidebarTile extends StatelessWidget {
 }
 
 class _LanguageButton extends StatelessWidget {
-  const _LanguageButton({required this.state, this.expanded = false});
+  const _LanguageButton({
+    required this.state,
+    this.expanded = false,
+    this.compact = false,
+  });
 
   final AppState state;
   final bool expanded;
+
+  /// Renders an icon-only button, used inside the compact app bar where space
+  /// is limited and the full label would overflow.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final label = l10n.isArabic ? l10n.t('lang.english') : l10n.t('lang.arabic');
+
+    if (compact) {
+      return Padding(
+        padding: const EdgeInsetsDirectional.only(end: 8),
+        child: IconButton(
+          tooltip: label,
+          onPressed: state.settings.toggleLanguage,
+          icon: const Icon(Icons.translate),
+        ),
+      );
+    }
+
     final button = OutlinedButton.icon(
       onPressed: state.settings.toggleLanguage,
       icon: const Icon(Icons.translate, size: 18),
-      label: Text(label),
+      label: Text(label, overflow: TextOverflow.ellipsis),
     );
     return expanded ? SizedBox(width: double.infinity, child: button) : button;
   }
@@ -430,7 +454,7 @@ class _DesktopTopBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          _LanguageButton(state: state),
+          Flexible(child: _LanguageButton(state: state)),
         ],
       ),
     );

@@ -278,8 +278,8 @@ class _ProductsPageState extends State<ProductsPage> {
       );
     }
 
-    final isCompact = MediaQuery.sizeOf(context).width < AppBreakpoints.compact;
-    if (isCompact) {
+    final width = MediaQuery.sizeOf(context).width;
+    if (width < AppBreakpoints.compact) {
       return _buildCardList(context);
     }
     return SurfaceCard(child: _buildTable(context));
@@ -298,9 +298,11 @@ class _ProductsPageState extends State<ProductsPage> {
               final showUnit = constraints.maxWidth > 980;
               final showCategory = constraints.maxWidth > 860;
               return SingleChildScrollView(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: DataTable(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                    child: DataTable(
                     showCheckboxColumn: false,
                     columnSpacing: 20,
                     horizontalMargin: 18,
@@ -357,34 +359,16 @@ class _ProductsPageState extends State<ProductsPage> {
                                 textDirection: TextDirection.ltr,
                               ),
                             ),
-                            DataCell(
-                              Row(
-                                children: [
-                                  IconButton(
-                                    tooltip: l10n.t('common.edit'),
-                                    visualDensity: VisualDensity.compact,
-                                    icon: const Icon(
-                                      Icons.edit_outlined,
-                                      size: 18,
-                                    ),
-                                    onPressed: () => _openForm(product: product),
-                                  ),
-                                  IconButton(
-                                    tooltip: l10n.t('common.delete'),
-                                    visualDensity: VisualDensity.compact,
-                                    icon: Icon(
-                                      Icons.delete_outline,
-                                      size: 18,
-                                      color: theme.colorScheme.error,
-                                    ),
-                                    onPressed: () => _delete(product),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            DataCell(_RowActions(
+                              onEdit: () => _openForm(product: product),
+                              onDelete: () => _delete(product),
+                              editTooltip: l10n.t('common.edit'),
+                              deleteTooltip: l10n.t('common.delete'),
+                            )),
                           ],
                         ),
                     ],
+                    ),
                   ),
                 ),
               );
@@ -499,14 +483,60 @@ class _Tag extends StatelessWidget {
         children: [
           Icon(icon, size: 13, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          // Table/card columns can be narrow after localization changes.
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+
+/// Compact edit/delete buttons that fit inside narrow table cells.
+class _RowActions extends StatelessWidget {
+  const _RowActions({
+    required this.onEdit,
+    required this.onDelete,
+    required this.editTooltip,
+    required this.deleteTooltip,
+  });
+
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final String editTooltip;
+  final String deleteTooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: editTooltip,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+          padding: EdgeInsets.zero,
+          icon: const Icon(Icons.edit_outlined, size: 18),
+          onPressed: onEdit,
+        ),
+        IconButton(
+          tooltip: deleteTooltip,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+          padding: EdgeInsets.zero,
+          icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+          onPressed: onDelete,
+        ),
+      ],
     );
   }
 }

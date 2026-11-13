@@ -221,6 +221,8 @@ class _CustomersPageState extends State<CustomersPage> {
       );
     }
 
+    // The master/detail split needs room for the table plus a 340px panel;
+    // below that the card list is used so nothing is squeezed.
     final isCompact = MediaQuery.sizeOf(context).width < AppBreakpoints.wide;
     if (isCompact) {
       return _buildCardList(context);
@@ -321,10 +323,15 @@ class _CustomersPageState extends State<CustomersPage> {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            child: SizedBox(
-              width: double.infinity,
-              child: DataTable(
+          child: LayoutBuilder(builder: (context, constraints) {
+            final showContact = constraints.maxWidth > 860;
+            final showPhone = constraints.maxWidth > 680;
+            return SingleChildScrollView(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
                 showCheckboxColumn: false,
                 columnSpacing: 22,
                 horizontalMargin: 18,
@@ -334,8 +341,10 @@ class _CustomersPageState extends State<CustomersPage> {
                 columns: [
                   DataColumn(label: Text(l10n.t('customer.name'))),
                   DataColumn(label: Text(l10n.t('customer.accountName'))),
-                  DataColumn(label: Text(l10n.t('customer.contactPerson'))),
-                  DataColumn(label: Text(l10n.t('customer.phone'))),
+                  if (showContact)
+                    DataColumn(label: Text(l10n.t('customer.contactPerson'))),
+                  if (showPhone)
+                    DataColumn(label: Text(l10n.t('customer.phone'))),
                   DataColumn(label: Text(l10n.t('common.actions'))),
                 ],
                 rows: [
@@ -375,42 +384,29 @@ class _CustomersPageState extends State<CustomersPage> {
                           ),
                         ),
                         DataCell(Text(customer.accountName ?? '—')),
-                        DataCell(Text(customer.contactPerson ?? '—')),
-                        DataCell(
-                          Text(
-                            customer.phone ?? '—',
-                            textDirection: TextDirection.ltr,
+                        if (showContact)
+                          DataCell(Text(customer.contactPerson ?? '—')),
+                        if (showPhone)
+                          DataCell(
+                            Text(
+                              customer.phone ?? '—',
+                              textDirection: TextDirection.ltr,
+                            ),
                           ),
-                        ),
-                        DataCell(
-                          Row(
-                            children: [
-                              IconButton(
-                                tooltip: l10n.t('common.edit'),
-                                visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.edit_outlined, size: 18),
-                                onPressed: () =>
-                                    _openForm(customer: customer),
-                              ),
-                              IconButton(
-                                tooltip: l10n.t('common.delete'),
-                                visualDensity: VisualDensity.compact,
-                                icon: Icon(
-                                  Icons.delete_outline,
-                                  size: 18,
-                                  color: theme.colorScheme.error,
-                                ),
-                                onPressed: () => _delete(customer),
-                              ),
-                            ],
-                          ),
-                        ),
+                        DataCell(_RowActions(
+                          onEdit: () => _openForm(customer: customer),
+                          onDelete: () => _delete(customer),
+                          editTooltip: l10n.t('common.edit'),
+                          deleteTooltip: l10n.t('common.delete'),
+                        )),
                       ],
                     ),
                 ],
+                ),
               ),
-            ),
-          ),
+              ),
+            );
+          }),
         ),
       ],
     );
@@ -493,5 +489,47 @@ class _CustomersPageState extends State<CustomersPage> {
     if (parts.isEmpty || parts.first.isEmpty) return '?';
     if (parts.length == 1) return parts.first.substring(0, 1);
     return '${parts.first.substring(0, 1)}${parts[1].substring(0, 1)}';
+  }
+}
+
+
+/// Compact edit/delete buttons that fit inside narrow table cells.
+class _RowActions extends StatelessWidget {
+  const _RowActions({
+    required this.onEdit,
+    required this.onDelete,
+    required this.editTooltip,
+    required this.deleteTooltip,
+  });
+
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final String editTooltip;
+  final String deleteTooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: editTooltip,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+          padding: EdgeInsets.zero,
+          icon: const Icon(Icons.edit_outlined, size: 18),
+          onPressed: onEdit,
+        ),
+        IconButton(
+          tooltip: deleteTooltip,
+          visualDensity: VisualDensity.compact,
+          constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+          padding: EdgeInsets.zero,
+          icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+          onPressed: onDelete,
+        ),
+      ],
+    );
   }
 }
