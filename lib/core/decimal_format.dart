@@ -52,6 +52,9 @@ class DecimalFormat {
 
     var result = buffer.toString();
     if (result.isEmpty) return null;
+    // Reject sign-only or separator-only input before normalizing: a bare
+    // '.' or ',' carries no numeric information.
+    if (!RegExp(r'\d').hasMatch(result)) return null;
 
     // Resolve the decimal separator: the last '.' or ',' is the decimal point
     // when the other one is clearly used as a grouping separator.
