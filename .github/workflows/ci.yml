@@ -14,6 +14,33 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Analyze
-        run: flutter analyze
+        id: analyze
+        run: |
+          set +e
+          flutter analyze > /tmp/analyze.txt 2>&1
+          echo "exit=$?" >> $GITHUB_OUTPUT
+          python3 - <<'PY'
+          import os
+          text = open('/tmp/analyze.txt').read()
+          for i in range(0, len(text), 6000):
+              chunk = text[i:i+6000].replace('\n', ' \\n ')
+              print(f"::error title=ANALYZE_CHUNK_{i//6000}::{chunk}")
+          PY
       - name: Test
-        run: flutter test --reporter expanded
+        id: test
+        run: |
+          set +e
+          flutter test --reporter compact > /tmp/test.txt 2>&1
+          echo "exit=$?" >> $GITHUB_OUTPUT
+          python3 - <<'PY'
+          text = open('/tmp/test.txt').read()
+          for i in range(0, len(text), 6000):
+              chunk = text[i:i+6000].replace('\n', ' \\n ')
+              print(f"::error title=TEST_CHUNK_{i//6000}::{chunk}")
+          PY
+      - name: Fail if needed
+        run: |
+          echo "analyze exit: ${{ steps.analyze.outputs.exit }}"
+          echo "test exit: ${{ steps.test.outputs.exit }}"
+          test "${{ steps.analyze.outputs.exit }}" = "0"
+          test "${{ steps.test.outputs.exit }}" = "0"
